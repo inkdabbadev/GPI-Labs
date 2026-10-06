@@ -221,7 +221,7 @@ export default function PlazaScene({ phase, playing, onReady, onFail }: Props) {
         ring.rotation.x = Math.PI / 2; ring.position.y = y; pedestal.add(ring);
       }
 
-      // ---------- The sculpture (the GI Lab logo, original artwork on the face) ----------
+      // ---------- The sculpture (the GILab logo, original artwork on the face) ----------
       const { parts, height } = buildLogoGeometries(THREE, data);
       const faceMat = new THREE.MeshStandardMaterial({ map: faceTexture, emissiveMap: faceTexture, emissive: 0xffffff, emissiveIntensity: look.face, roughness: .5, metalness: 0, envMapIntensity: .25 });
       const wallMat = new THREE.MeshStandardMaterial({ color: 0xc4c8d0, metalness: 1, roughness: .24 });

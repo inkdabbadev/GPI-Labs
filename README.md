@@ -1,6 +1,6 @@
-# GI Lab: Art. Light. Technology.
+# GILab: Art. Light. Technology.
 
-Coming-soon landing page for GI Lab: one screen, no forms or contact buttons. Next.js (App Router), React, TypeScript and Three.js.
+Coming-soon landing page for GILab: one screen with a single contact invitation and no forms. Next.js (App Router), React, TypeScript and Three.js.
 
 ## Run
 
@@ -16,7 +16,7 @@ Root `index.html`, `script.js` and `style.css` are left over from the earlier st
 
 ## The experience
 
-The page is built around one real-time scene: a public plaza at the edge of a city, where the GI Lab logo stands as a monumental sculpture. The three words of the headline are three acts, and the plaza changes with each one:
+The page is built around one real-time scene: a public plaza at the edge of a city, where the GILab logo stands as a monumental sculpture. The three words of the headline are three acts, and the plaza changes with each one:
 
 | Act | What the plaza shows |
 | --- | --- |
@@ -38,9 +38,9 @@ The acts advance every 10 seconds. Visitors can choose an act, pause the scene a
 
 The three acts play as one story, each with its own camera shot and a short sequence on its own clock:
 
-1. **Art: "It begins with a form."** Dusk. The sculpture stands alone.
-2. **Light: "Then the place comes alive."** Light runs around the plinth rings, then the steps ignite from front to back. A spotlight sweeps the face, beams sway, and pulses chase along the steps. The camera moves lower and closer.
-3. **Technology: "And the place responds."** A scan wave rolls out across the floor and the plinth rings turn blue. The sculpture dissolves from the top down into a swirling cloud of points in its own colours, then the points stream back and it re-forms from the bottom up, with a glowing outline leading the build. Data streams fly in from the city, and the hologram settles over the finished work.
+1. **Art: "It begins with imagination."** Dusk. The sculpture stands alone.
+2. **Light: "Light brings it to life."** Light runs around the plinth rings, then the steps ignite from front to back. A spotlight sweeps the face, beams sway, and pulses chase along the steps. The camera moves lower and closer.
+3. **Technology: "Technology invites participation."** A scan wave rolls out across the floor and the plinth rings turn blue. The sculpture dissolves from the top down into a swirling cloud of points in its own colours, then the points stream back and it re-forms from the bottom up, with a glowing outline leading the build. Data streams fly in from the city, and the hologram settles over the finished work.
 
 ### Motion
 
@@ -76,3 +76,7 @@ The three acts play as one story, each with its own camera shot and a short sequ
 - `public/logo_transparent.png`: byte-identical copy of the supplied logo. `npm run check:logo` verifies this.
 - `public/logo-shape.json`: alpha contour of the logo (`python scripts/trace_logo.py`).
 - `public/textures/logo-face.png`, `public/logo-mark.png` and `app/icon.png`: derived with `python scripts/prepare_assets.py` (requires OpenCV). The face texture is 2048px wide so it fits mobile GPU texture limits.
+
+## Contact link
+
+"Discuss a project" opens `CONTACT_HREF` in `components/Experience.tsx`. Add the studio's email after `mailto:`, or replace it with a contact page URL.

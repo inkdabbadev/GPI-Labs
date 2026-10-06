@@ -48,6 +48,14 @@ mw = 640
 mark = cv2.resize(crop, (mw, round(crop.shape[0] * mw / crop.shape[1])), interpolation=cv2.INTER_AREA)
 cv2.imwrite('public/logo-mark.png', mark, [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
+# White header mark: every opaque pixel becomes white and the white "LAB" lettering becomes a cut-out,
+# so the mark (including the dot) reads clearly on the dark scene.
+whiteness = np.clip((mark[:, :, :3].min(axis=2).astype(np.float32) - 170) / 60, 0, 1)
+white = np.zeros_like(mark)
+white[:, :, :3] = 255
+white[:, :, 3] = (mark[:, :, 3].astype(np.float32) * (1 - whiteness)).astype(np.uint8)
+cv2.imwrite('public/logo-white.png', white, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+
 # Square icon
 side = max(crop.shape[:2])
 square = np.zeros((side, side, 4), np.uint8)

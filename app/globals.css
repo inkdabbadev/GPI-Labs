@@ -79,15 +79,15 @@ h1 {
 
 /* Coming soon: a soft sheen passes across the words in the act's accent colour. */
 .soon {
-  margin-top: clamp(22px, 3.6vh, 36px);
-  font-size: clamp(1.45rem, 2.1vw, 1.95rem); font-weight: 700; letter-spacing: .005em;
+  margin-top: clamp(18px, 3vh, 30px);
+  font-size: clamp(1.3rem, 1.85vw, 1.7rem); font-weight: 700; font-style: italic; letter-spacing: .005em; padding-right: .1em;
   background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 40%, var(--accent) 50%, var(--ink) 60%, var(--ink) 100%);
   background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: sheen 5.5s var(--ease-soft) infinite;
 }
 
 /* Phase copy crossfades in place: the outgoing line drifts up and softens as the next settles in. */
-.detail { margin-top: clamp(14px, 2.2vh, 20px); display: grid; }
+.detail { margin-top: clamp(12px, 2vh, 18px); display: grid; }
 .detail-item {
   grid-area: 1 / 1; opacity: 0; transform: translateY(-10px); filter: blur(6px); pointer-events: none;
   transition: opacity .7s var(--ease-soft), transform .9s var(--ease-soft), filter .7s var(--ease-soft);
@@ -99,8 +99,23 @@ h1 {
 .detail-title { font-size: clamp(1.04rem, 1.25vw, 1.16rem); font-weight: 600; }
 .detail-line { margin-top: 4px; color: var(--muted); }
 
+/* Contact invitation: the same in every scene. */
+.cta { margin-top: clamp(20px, 3.4vh, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+.cta-note { flex-basis: 100%; color: var(--muted); }
+.primary {
+  display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+  padding: 15px 28px; border-radius: 999px; background: #e85410; color: #fff;
+  font-size: 18px; font-weight: 700; letter-spacing: -.005em;
+  box-shadow: 0 10px 34px -10px rgba(255, 106, 31, .55), inset 0 1px 0 rgba(255, 255, 255, .25);
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out), background .3s;
+}
+.primary span { transition: transform .5s var(--ease-out); }
+.primary:hover { background: #f4600f; transform: translateY(-2px); box-shadow: 0 16px 44px -10px rgba(255, 106, 31, .7), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.primary:hover span { transform: translate(3px, -3px); }
+.primary:active { transform: translateY(0) scale(.98); transition-duration: .15s; }
+
 /* Act selector with the play control aligned on the same baseline. */
-.controls { margin-top: clamp(28px, 5vh, 50px); display: flex; align-items: center; gap: 22px; }
+.controls { margin-top: clamp(24px, 4vh, 40px); display: flex; align-items: center; gap: 24px; }
 .phases { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .phases button { text-align: left; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px 10px; color: var(--muted); transition: color .5s var(--ease-soft); padding: 6px 0; }
 .phases button:hover, .phases button.is-active { color: var(--ink); }
@@ -114,12 +129,13 @@ h1 {
 .scene-loading .is-active .phase-fill { animation: none; transform: scaleX(0); }
 
 .play {
-  flex: none; position: relative; width: 46px; height: 46px; border-radius: 50%; color: var(--ink);
+  flex: none; display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 0; height: 46px; border-radius: 999px; color: var(--ink);
   border: 1px solid rgba(255, 255, 255, .28); background: rgba(10, 13, 20, .3); backdrop-filter: blur(10px);
-  transition: border-color .4s, background .4s, transform .5s var(--ease-out);
+  font-size: 15px; font-weight: 600; white-space: nowrap;
+  transition: border-color .4s, background .4s;
 }
-.play:hover { border-color: rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .08); transform: scale(1.05); }
-.play-icon { position: absolute; inset: 0; }
+.play:hover { border-color: rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .08); }
+.play-icon { position: relative; flex: none; width: 44px; height: 44px; }
 .play-icon::before, .play-icon::after { content: ""; position: absolute; top: 16px; width: 3px; height: 12px; background: currentColor; border-radius: 1px; transition: all .3s var(--ease-soft); }
 .play-icon::before { left: 17px; }
 .play-icon::after { left: 24px; }
@@ -127,8 +143,7 @@ h1 {
 .is-paused .play-icon::before { left: 18px; top: 15px; width: 0; height: 0; background: none; border-left: 12px solid currentColor; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-radius: 0; }
 
 /* ---------- Footer ---------- */
-.bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px 28px; flex-wrap: wrap; font-size: 15px; color: var(--muted); }
-.domain { color: var(--ink); font-weight: 700; letter-spacing: .01em; }
+.bottom { font-size: 15px; color: var(--muted); }
 
 /* ---------- Entrance ---------- */
 /* No preloader: the copy enters at once while the scene fades up behind it. */
@@ -139,6 +154,7 @@ h1 {
 .hero > :nth-child(3) { animation-delay: .85s; }
 .hero > :nth-child(4) { animation-delay: 1s; }
 .hero > :nth-child(5) { animation-delay: 1.15s; }
+.hero > :nth-child(6) { animation-delay: 1.3s; }
 .bottom { animation: fade 1.4s 1.3s var(--ease-soft) both; }
 
 /* ---------- Keyframes ---------- */
@@ -174,11 +190,10 @@ h1 {
   .phases { gap: 10px; }
   .phase-index { display: none; }
   .phase-name { font-size: 15px; }
-  .play { width: 42px; height: 42px; }
-  .play-icon::before { left: 15px; top: 14px; }
-  .play-icon::after { left: 22px; top: 14px; }
-  .is-paused .play-icon::before { left: 16px; top: 13px; }
-  .bottom { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 14px; }
+  .controls { flex-direction: column; align-items: stretch; }
+  .play { align-self: flex-start; }
+  .primary { padding: 14px 24px; font-size: 17px; }
+  .bottom { font-size: 14px; }
   .scene-failed .fallback { inset: 0 0 50% 0; }
   .scene-failed .fallback img { width: 64vw; }
 }

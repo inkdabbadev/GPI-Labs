@@ -120,6 +120,8 @@ export default function PlazaScene({ phase, playing, onReady, onFail }: Props) {
       renderer.toneMappingExposure = 0;
       renderer.shadowMap.enabled = !low;
       renderer.localClippingEnabled = true;
+      // The glass casing refracts a copy of the scene: full resolution keeps the artwork crisp; reduced on small devices.
+      renderer.transmissionResolutionScale = low ? .8 : 1;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.domElement.setAttribute('aria-hidden', 'true');
       container.appendChild(renderer.domElement);
@@ -222,7 +224,7 @@ export default function PlazaScene({ phase, playing, onReady, onFail }: Props) {
       }
 
       // ---------- The sculpture (the GILab logo, original artwork on the face) ----------
-      const { parts, height } = buildLogoGeometries(THREE, data);
+      const { parts, glassParts, height } = buildLogoGeometries(THREE, data);
       const faceMat = new THREE.MeshStandardMaterial({ map: faceTexture, emissiveMap: faceTexture, emissive: 0xffffff, emissiveIntensity: look.face, roughness: .5, metalness: 0, envMapIntensity: .25 });
       const wallMat = new THREE.MeshStandardMaterial({ color: 0xc4c8d0, metalness: 1, roughness: .24 });
       const backMat = new THREE.MeshStandardMaterial({ color: 0x8d939d, metalness: 1, roughness: .4 });
@@ -240,6 +242,30 @@ export default function PlazaScene({ phase, playing, onReady, onFail }: Props) {
         const mesh = new THREE.Mesh(g, i === dotIndex ? [dotMat, wallMat, backMat] : materials); mesh.castShadow = mesh.receiveShadow = true;
         (i === dotIndex ? dotGroup : sculpture).add(mesh);
       });
+      // Liquid-glass casing: the logo's own outline, bevelled outward, with real refraction, a faint
+      // iridescent sheen and a slow ripple running through it. It never writes depth, so the
+      // hologram and particles of the Technology act still show through it.
+      const glassTime = { value: 0 };
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, metalness: 0, roughness: .015, transmission: 1, thickness: .35, ior: 1.4,
+        attenuationColor: new THREE.Color('#e6eeff'), attenuationDistance: 4,
+        clearcoat: 1, clearcoatRoughness: .04, specularIntensity: 1, envMapIntensity: 1.3,
+        iridescence: .45, iridescenceIOR: 1.3, iridescenceThicknessRange: [140, 460],
+        depthWrite: false, clippingPlanes: [clipPlane]
+      });
+      glassMat.onBeforeCompile = shader => {
+        shader.uniforms.uTime = glassTime;
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime;')
+          .replace('#include <begin_vertex>', `#include <begin_vertex>
+            // Position-only ripple: every coincident vertex moves together, so the surface never tears.
+            transformed.z += sin(transformed.x * 1.6 + uTime * 1.2) * sin(transformed.y * 1.3 - uTime * .8) * .035;
+            transformed.x += sin(transformed.y * 2.0 + uTime * 1.0) * .01;`);
+      };
+      glassParts.forEach((g, i) => {
+        const glass = new THREE.Mesh(g, glassMat); glass.renderOrder = 1;
+        (i === dotIndex ? dotGroup : sculpture).add(glass);
+      });
+
       // The dot floats, held by a column of light rather than a support rod.
       const dotBox = parts[dotIndex].boundingBox!;
       const dotX = (dotBox.min.x + dotBox.max.x) / 2, dotR = (dotBox.max.x - dotBox.min.x) / 2;
@@ -684,7 +710,7 @@ export default function PlazaScene({ phase, playing, onReady, onFail }: Props) {
         edgeUniforms.uTrace.value = reduced || !inTech || clipY > 900 ? 99 : clipY + .5;
         gridMat.uniforms.uPulse.value = state.phase === 2 ? actTime : 99;
         streamMat.uniforms.uTime.value = time; streamMat.uniforms.uI.value = look.holo * smoother(THREE.MathUtils.clamp((actTime - .6) / 1.6, 0, 1));
-        holoUniforms.uTime.value = time; holoUniforms.uI.value = look.holo;
+        holoUniforms.uTime.value = time; holoUniforms.uI.value = look.holo; glassTime.value = time;
         const base = PEDESTAL_TOP, top = PEDESTAL_TOP + height + .25;
         shellUniforms.uReveal.value = reduced ? top + 1 : base - .3 + smoother(reveal) * (top - base + .6);
         orbits.forEach((o, i) => { (o.mesh.material as THREE.ShaderMaterial).uniforms.uOffset.value = -time * o.speed * 2; o.mesh.rotation.z = orbitTilt[i] + time * .03 * (i % 2 ? -1 : 1); });

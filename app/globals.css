@@ -47,7 +47,7 @@ p, h1 { margin: 0; }
 .shade {
   position: absolute; inset: 0; pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(5, 7, 12, .92) 0%, rgba(5, 7, 12, .74) 26%, rgba(5, 7, 12, .28) 48%, transparent 64%),
+    linear-gradient(90deg, rgba(5, 7, 12, .78) 0%, rgba(5, 7, 12, .55) 26%, rgba(5, 7, 12, .18) 48%, transparent 64%),
     linear-gradient(0deg, rgba(5, 7, 12, .8) 0%, transparent 20%),
     linear-gradient(180deg, rgba(5, 7, 12, .5) 0%, transparent 15%);
 }
@@ -66,15 +66,29 @@ p, h1 { margin: 0; }
 .hero { align-self: center; width: min(100%, 620px); padding: clamp(20px, 4vh, 48px) 0; }
 
 h1 {
-  font-size: clamp(3.2rem, 6.4vw, 6.6rem);
+  font-size: clamp(3rem, min(6.4vw, 10.2vh), 6.6rem);
   line-height: .98; font-weight: 800; letter-spacing: -.035em;
 }
+/* Glass letters: a white glass fill with a refraction line through the middle, the act's colours
+   fading in on the active word, and a specular highlight gliding across like light on liquid. */
+h1 { filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .45)); }
 .word {
-  display: inline-block; padding-bottom: .08em; margin-bottom: -.08em;
-  background: var(--word); -webkit-background-clip: text; background-clip: text;
-  color: var(--ink); transition: color 1.4s var(--ease-soft);
+  position: relative; display: inline-block; padding: .04em .06em .24em 0; margin: -.04em -.06em -.24em 0; color: transparent;
+  background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, .9) 46%, rgba(214, 228, 255, .74) 52%, rgba(255, 255, 255, .86) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, .28);
 }
-.word.is-active { color: transparent; }
+.word::before, .word::after {
+  content: attr(data-text); position: absolute; inset: 0; padding: inherit; pointer-events: none;
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 0;
+}
+.word::after { background-image: var(--word); opacity: 0; transition: opacity 1.4s var(--ease-soft); }
+.word.is-active::after { opacity: 1; }
+.word::before {
+  z-index: 1; mix-blend-mode: screen;
+  background-image: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .85) 48%, rgba(255, 255, 255, .2) 52%, transparent 62%);
+  background-size: 300% 100%; animation: glide 7s var(--ease-soft) infinite; animation-delay: calc(var(--i) * .5s);
+}
 .lead { margin-top: clamp(14px, 2.2vh, 22px); font-size: clamp(1.25rem, 1.75vw, 1.65rem); font-weight: 500; letter-spacing: -.01em; }
 
 /* Coming soon: a soft sheen passes across the words in the act's accent colour. */
@@ -86,8 +100,38 @@ h1 {
   animation: sheen 5.5s var(--ease-soft) infinite;
 }
 
+/* ---------- Liquid glass ---------- */
+.glass-defs { position: absolute; width: 0; height: 0; }
+.glass {
+  position: relative; isolation: isolate;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(255, 255, 255, .14), transparent 55%),
+    radial-gradient(90% 120% at 100% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    rgba(18, 22, 34, .32);
+  -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .38), inset 0 -1px 0 rgba(255, 255, 255, .08),
+    inset 0 0 24px rgba(255, 255, 255, .05), 0 24px 60px -24px rgba(0, 0, 0, .7);
+  transition: background .9s var(--ease-soft);
+}
+.liquid .glass { backdrop-filter: url(#liquid-glass) saturate(175%) brightness(1.06); }
+/* Rim light: a gradient border that catches light at the top-left and bottom-right. */
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, .1) 30%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, .28) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Specular highlight that follows the pointer. */
+.glass::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(260px circle at var(--mx, 20%) var(--my, -40%), rgba(255, 255, 255, .16), transparent 65%);
+}
+
+.panel { margin-top: clamp(18px, 3vh, 28px); padding: clamp(18px, 2.6vh, 24px) clamp(20px, 2vw, 28px); border-radius: 28px; }
+
 /* Phase copy crossfades in place: the outgoing line drifts up and softens as the next settles in. */
-.detail { margin-top: clamp(12px, 2vh, 18px); display: grid; }
+.detail { display: grid; }
 .detail-item {
   grid-area: 1 / 1; opacity: 0; transform: translateY(-10px); filter: blur(6px); pointer-events: none;
   transition: opacity .7s var(--ease-soft), transform .9s var(--ease-soft), filter .7s var(--ease-soft);
@@ -100,42 +144,47 @@ h1 {
 .detail-line { margin-top: 4px; color: var(--muted); }
 
 /* Contact invitation: the same in every scene. */
-.cta { margin-top: clamp(20px, 3.4vh, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+.cta { margin-top: clamp(16px, 2.6vh, 22px); padding-top: clamp(16px, 2.6vh, 22px); border-top: 1px solid rgba(255, 255, 255, .1); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
 .cta-note { flex-basis: 100%; color: var(--muted); }
 .primary {
-  display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
-  padding: 15px 28px; border-radius: 999px; background: #e85410; color: #fff;
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+  padding: 15px 28px; border-radius: 999px; color: #fff;
   font-size: 18px; font-weight: 700; letter-spacing: -.005em;
-  box-shadow: 0 10px 34px -10px rgba(255, 106, 31, .55), inset 0 1px 0 rgba(255, 255, 255, .25);
-  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out), background .3s;
+  background: linear-gradient(180deg, rgba(255, 138, 70, .92) 0%, rgba(236, 92, 22, .9) 52%, rgba(214, 72, 12, .92) 100%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -2px 6px rgba(120, 30, 0, .35), inset 0 0 0 1px rgba(255, 200, 160, .25), 0 12px 34px -10px rgba(255, 106, 31, .6);
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
 }
+/* A glossy cap and a sheen that sweeps across on hover. */
+.primary::before { content: ""; position: absolute; inset: 1px 1px 50% 1px; border-radius: 999px 999px 40% 40%; background: linear-gradient(180deg, rgba(255, 255, 255, .38), rgba(255, 255, 255, 0)); pointer-events: none; }
+.primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .45) 50%, transparent 65%); transform: translateX(-120%); transition: transform .9s var(--ease-out); pointer-events: none; }
+.primary:hover::after { transform: translateX(120%); }
 .primary span { transition: transform .5s var(--ease-out); }
-.primary:hover { background: #f4600f; transform: translateY(-2px); box-shadow: 0 16px 44px -10px rgba(255, 106, 31, .7), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.primary:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 6px rgba(120, 30, 0, .35), inset 0 0 0 1px rgba(255, 200, 160, .3), 0 18px 44px -10px rgba(255, 106, 31, .75); }
 .primary:hover span { transform: translate(3px, -3px); }
 .primary:active { transform: translateY(0) scale(.98); transition-duration: .15s; }
 
-/* Act selector with the play control aligned on the same baseline. */
-.controls { margin-top: clamp(24px, 4vh, 40px); display: flex; align-items: center; gap: 24px; }
-.phases { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.phases button { text-align: left; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px 10px; color: var(--muted); transition: color .5s var(--ease-soft); padding: 6px 0; }
+/* Act selector: a glass pill bar; a liquid highlight springs to the active act and shows its progress. */
+.controls { margin-top: clamp(18px, 3vh, 28px); display: flex; align-items: center; gap: 14px; }
+.phases { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 5px; border-radius: 999px; }
+.phases button { position: relative; z-index: 1; height: 40px; border-radius: 999px; font-size: 16px; font-weight: 700; color: var(--muted); white-space: nowrap; transition: color .6s var(--ease-soft); }
 .phases button:hover, .phases button.is-active { color: var(--ink); }
-.phase-index { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; opacity: .8; }
-.phase-name { font-size: 17px; font-weight: 700; white-space: nowrap; }
-.phase-track { grid-column: 1 / -1; margin-top: 8px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .18); overflow: hidden; }
-.phase-fill { display: block; height: 100%; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .8s var(--ease-soft), background-color 1.4s var(--ease-soft); }
-.phases button:not(.is-active) .phase-fill { transform-origin: right; }
-.is-active .phase-fill { transform: scaleX(1); }
-.is-playing .is-active .phase-fill { animation: fill var(--phase-duration) linear both; }
-.scene-loading .is-active .phase-fill { animation: none; transform: scaleX(0); }
+.phase-blob {
+  position: absolute; z-index: 0; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 3); border-radius: 999px; overflow: hidden;
+  transform: translateX(calc(var(--p) * 100%)); transition: transform .9s cubic-bezier(.5, 1.45, .45, 1), background 1s var(--ease-soft);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .07)), color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .1), 0 6px 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.phase-fill { position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--accent); transform: scaleX(1); transform-origin: left; opacity: .9; }
+.is-playing .phase-fill { animation: fill var(--phase-duration) linear both; }
+.scene-loading .phase-fill { animation: none; transform: scaleX(0); }
 
 .play {
-  flex: none; display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 0; height: 46px; border-radius: 999px; color: var(--ink);
-  border: 1px solid rgba(255, 255, 255, .28); background: rgba(10, 13, 20, .3); backdrop-filter: blur(10px);
+  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 0 18px 0 2px; height: 50px; border-radius: 999px; color: var(--ink);
   font-size: 15px; font-weight: 600; white-space: nowrap;
-  transition: border-color .4s, background .4s;
 }
-.play:hover { border-color: rgba(255, 255, 255, .6); background: rgba(255, 255, 255, .08); }
-.play-icon { position: relative; flex: none; width: 44px; height: 44px; }
+.play:hover { transform: translateY(-1px); }
+.play-icon { position: relative; flex: none; width: 44px; height: 44px; margin-top: 2px; }
 .play-icon::before, .play-icon::after { content: ""; position: absolute; top: 16px; width: 3px; height: 12px; background: currentColor; border-radius: 1px; transition: all .3s var(--ease-soft); }
 .play-icon::before { left: 17px; }
 .play-icon::after { left: 24px; }
@@ -162,13 +211,27 @@ h1 {
 @keyframes word { from { opacity: 0; transform: translateY(.4em) rotate(1.5deg); filter: blur(12px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes glide { 0%, 30% { background-position: 100% 0; } 70%, 100% { background-position: 0 0; } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 @keyframes sheen { 0%, 25% { background-position: 100% 0; } 75%, 100% { background-position: 0 0; } }
 
 /* ---------- Responsive ---------- */
+/* Shorter laptop screens: tighter rhythm so everything fits on one screen. */
+@media (max-height: 860px) and (min-width: 761px) {
+  .site { padding-top: 16px; padding-bottom: 14px; }
+  .brand { height: 50px; }
+  .lead { margin-top: 10px; }
+  .soon { margin-top: 14px; }
+  .panel { margin-top: 14px; padding: 14px 22px; }
+  .cta { margin-top: 12px; padding-top: 12px; gap: 10px 22px; }
+  .primary { padding: 12px 24px; font-size: 17px; }
+  .phases button { height: 36px; }
+  .play { height: 46px; }
+}
+
 @media (max-height: 820px) and (min-width: 761px) {
-  h1 { font-size: clamp(3rem, 5.8vw, 5.4rem); }
-  .controls { margin-top: 26px; }
+  h1 { font-size: clamp(3rem, min(5.8vw, 10vh), 5.4rem); }
+  .controls { margin-top: 14px; }
 }
 
 @media (max-width: 1100px) and (min-width: 761px) {
@@ -180,16 +243,13 @@ h1 {
   body { font-size: 16px; }
   .shade {
     background:
-      linear-gradient(180deg, rgba(5, 7, 12, .5) 0%, transparent 14%, transparent 34%, rgba(5, 7, 12, .8) 52%, rgba(5, 7, 12, .95) 70%);
+      linear-gradient(180deg, rgba(5, 7, 12, .5) 0%, transparent 14%, transparent 34%, rgba(5, 7, 12, .6) 52%, rgba(5, 7, 12, .82) 72%);
   }
   .hero { align-self: end; padding-top: 37svh; padding-bottom: 16px; }
   .soon { margin-top: 18px; }
-  .controls { margin-top: 24px; }
   h1 { font-size: clamp(2.9rem, 13.5vw, 4.2rem); }
-  .controls { gap: 14px; }
-  .phases { gap: 10px; }
-  .phase-index { display: none; }
-  .phase-name { font-size: 15px; }
+  .controls { margin-top: 18px; gap: 12px; }
+  .phases button { font-size: 15px; }
   .controls { flex-direction: column; align-items: stretch; }
   .play { align-self: flex-start; }
   .primary { padding: 14px 24px; font-size: 17px; }

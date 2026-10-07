@@ -43,12 +43,38 @@ export default function Experience() {
     return () => clearTimeout(id);
   }, []);
 
+  // Liquid glass: Chromium can refract the scene behind glass with an SVG filter; others keep frosted glass.
+  // A soft specular highlight on every glass surface follows the pointer.
+  useEffect(() => {
+    const brands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands ?? [];
+    if (brands.some(b => /Chromium/.test(b.brand))) document.documentElement.classList.add('liquid');
+    let frame = 0, x = 0, y = 0;
+    const paint = () => {
+      frame = 0;
+      document.querySelectorAll<HTMLElement>('.glass').forEach(el => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${x - r.left}px`); el.style.setProperty('--my', `${y - r.top}px`);
+      });
+    };
+    const move = (e: PointerEvent) => { x = e.clientX; y = e.clientY; if (!frame) frame = requestAnimationFrame(paint); };
+    window.addEventListener('pointermove', move, { passive: true });
+    return () => { window.removeEventListener('pointermove', move); cancelAnimationFrame(frame); };
+  }, []);
+
   const onReady = useCallback(() => setSceneState('ready'), []);
   const onFail = useCallback(() => setSceneState('failed'), []);
   const choose = (index: number) => { setPhase(index); setPlaying(false); };
 
   return (
-    <div className={`site phase-${phase} scene-${sceneState} ${playing ? 'is-playing' : 'is-paused'}`} style={{ '--phase-duration': `${PHASE_SECONDS}s` } as React.CSSProperties}>
+    <div className={`site phase-${phase} scene-${sceneState} ${playing ? 'is-playing' : 'is-paused'}`} style={{ '--phase-duration': `${PHASE_SECONDS}s`, '--p': phase } as React.CSSProperties}>
+      <svg className="glass-defs" width="0" height="0" aria-hidden="true">
+        <filter id="liquid-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves={2} seed={11} result="noise" />
+          <feGaussianBlur in="noise" stdDeviation="3" result="map" />
+          <feDisplacementMap in="SourceGraphic" in2="map" scale="46" xChannelSelector="R" yChannelSelector="G" result="bent" />
+          <feGaussianBlur in="bent" stdDeviation="6" />
+        </filter>
+      </svg>
       <div className="stage" aria-hidden="true">
         {sceneState !== 'failed' && <PlazaScene phase={phase} playing={playing} onReady={onReady} onFail={onFail} />}
         <div className="fallback"><img src="/logo-mark.png" alt="" /></div>
@@ -63,7 +89,7 @@ export default function Experience() {
         <h1>
           {phases.map((p, i) => (
             <span key={p.name}>
-              <span className={`word ${i === phase ? 'is-active' : ''}`} style={{ '--i': i } as React.CSSProperties}>{p.name}.</span>
+              <span className={`word ${i === phase ? 'is-active' : ''}`} data-text={`${p.name}.`} style={{ '--i': i } as React.CSSProperties}>{p.name}.</span>
               {i === 1 ? <br /> : ' '}
             </span>
           ))}
@@ -72,6 +98,7 @@ export default function Experience() {
 
         <p className="soon">Our new website is coming soon.</p>
 
+        <section className="panel glass">
         <div className="detail">
           {phases.map((p, i) => (
             <div key={p.name} className={`detail-item ${i === phase ? 'is-active' : ''}`} aria-hidden={i !== phase}>
@@ -85,18 +112,16 @@ export default function Experience() {
           <p className="cta-note">Our studio is open for projects and collaborations.</p>
           <a className="primary" href={CONTACT_HREF}>Discuss a project <span aria-hidden="true">↗</span></a>
         </div>
+        </section>
 
         <div className="controls">
-          <div className="phases" role="group" aria-label="Choose what the plaza shows">
+          <div className="phases glass" role="group" aria-label="Choose what the plaza shows">
+            <span className="phase-blob" aria-hidden="true"><span className="phase-fill" key={`${phase}-${playing}`} /></span>
             {phases.map((p, i) => (
-              <button key={p.name} className={i === phase ? 'is-active' : ''} aria-pressed={i === phase} onClick={() => choose(i)}>
-                <span className="phase-index">0{i + 1}</span>
-                <span className="phase-name">{p.name}</span>
-                <span className="phase-track"><span className="phase-fill" key={`${phase}-${playing}`} /></span>
-              </button>
+              <button key={p.name} className={i === phase ? 'is-active' : ''} aria-pressed={i === phase} onClick={() => choose(i)}>{p.name}</button>
             ))}
           </div>
-          <button className="play" onClick={() => setPlaying(v => !v)} aria-pressed={!playing}>
+          <button className="play glass" onClick={() => setPlaying(v => !v)} aria-pressed={!playing}>
             <span className="play-icon" aria-hidden="true" />
             <span className="play-label">{playing ? 'Pause experience' : 'Play experience'}</span>
           </button>

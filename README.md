@@ -80,3 +80,10 @@ The three acts play as one story, each with its own camera shot and a short sequ
 ## Contact link
 
 "Discuss a project" opens `CONTACT_HREF` in `components/Experience.tsx`. Add the studio's email after `mailto:`, or replace it with a contact page URL.
+
+## Liquid glass layer
+
+- Headline letters are glass: a white glass fill with a refraction line, the act's colours fading in on the active word, and a slow specular highlight gliding across.
+- The act copy and the studio invitation sit on a frosted glass panel with a rim light and a pointer-following highlight. The act selector is a glass pill bar whose liquid indicator springs to the active act and shows its progress; the play control is a glass pill and the CTA is tinted glass.
+- In Chromium browsers the glass also refracts the scene through an SVG displacement filter (`#liquid-glass`); other browsers keep the frosted glass.
+- The 3D logo wears a liquid-glass casing in every act: the logo's own outline bevelled outward (`glassParts` in `lib/logoGeometry.mjs`), with real refraction, a faint iridescent sheen and a slow ripple. It dissolves and rebuilds with the logo in the Technology act, and `npm run check:logo` verifies it wraps the logo evenly.
